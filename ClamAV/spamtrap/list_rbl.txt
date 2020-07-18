@@ -1,0 +1,4 @@
+BRBL		b.barracudacentral.org		"127.0.0.2"
+COBION		dnsbl.cobion.com		"127.0.0.1"
+SRN		srn.surgate.net			"127.0.0.2"
+;SENDERSCORE	score.senderscore.com		"127.0.4.0 127.0.4.1 127.0.4.2 127.0.4.3 127.0.4.4 127.0.4.5 127.0.4.6 127.0.4.7 127.0.4.8 127.0.4.9 127.0.4.10"

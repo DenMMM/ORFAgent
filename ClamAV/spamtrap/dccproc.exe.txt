@@ -1,0 +1,3 @@
+http://sawin32.sourceforge.net/
+SpamAssassin for Win32
+SpamAssassin-3.2.3.5-win32.zip\dccproc.exe

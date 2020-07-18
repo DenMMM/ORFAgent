@@ -1,0 +1,12 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\ClamDSpam]
+"Type"=dword:00000010
+"Start"=dword:00000004
+"ErrorControl"=dword:00000001
+"ImagePath"="C:\\Program Files\\ClamAV\\clamd.exe" --daemon --config-file="C:\\Program Files\\ClamAV\\clamd_spam.conf"
+"DisplayName"="ClamWin Free SPAM-only Scanner Service"
+"ObjectName"=".\\_clamav"
+"Description"="Provides SPAM-only scanning facilities for ClamWin Free Antivirus application"
+"FailureActions"=hex:00,00,00,00,00,00,00,00,00,00,00,00,03,00,00,00,14,00,00,\
+  00,01,00,00,00,e0,93,04,00,01,00,00,00,e0,93,04,00,01,00,00,00,e0,93,04,00
