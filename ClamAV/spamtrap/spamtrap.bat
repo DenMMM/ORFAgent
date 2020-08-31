@@ -4,7 +4,10 @@ set base_dir=C:\Program Files\ClamAV\spamtrap\base
 set sig_basename=spamtrap
 set sig_ext=hdb
 set sig_file=%base_dir%\%sig_basename%.%sig_ext%
-set sig_age=14
+set sig_age=21
+set fp_ext=fp
+set fp_file=%base_dir%\%sig_basename%.%fp_ext%
+set fp_age=31
 set sigtool_exe=C:\Program Files\ClamAV\sigtool.exe
 set clamscan_exe=C:\Program Files\ClamAV\clamscan.exe
 set clamav_db=C:\Program Files\ClamAV\db_spam
@@ -16,10 +19,13 @@ if "%1"=="rotate" (
 
   echo. >>"%log_file%"
   call :rotate "%base_dir%" "%sig_basename%" %sig_ext% %sig_age% 2>>"%log_file%"
+  echo. >>"%log_file%"
+  call :rotate "%base_dir%" "%sig_basename%" %fp_ext% %fp_age% 2>>"%log_file%"
 
   rem Copying all bases of signatures to ClamAV
   echo. >>"%log_file%"
   echo Copying signatures to ClamAV... >>"%log_file%"
+  del /F/S/Q "%clamav_db%\%sig_basename%*.*" 2>>"%log_file%"
   xcopy /R/Y "%base_dir%\%sig_basename%*.*" "%clamav_db%" >>"%log_file%" 2>>&1
 
   echo. >>"%log_file%"
@@ -30,10 +36,10 @@ if "%1"=="rotate" (
 
 echo Started: %date%-%time% >"%log_file%"
 
-rem Get "incoming" e-mail's of "spamtrap" mailbox
+rem Get "incoming" e-mail's of "spamtrap BL" mailbox
 echo. >>"%log_file%"
 echo Get spamtrap-mailbox messages... >>"%log_file%"
-mpop.exe -Q -C mpop.conf >>"%log_file%"
+mpop.exe -Q -C mpop_bl.conf >>"%log_file%"
 
 rem Remove already hashed EML-files
 echo. >>"%log_file%"
@@ -41,6 +47,37 @@ echo Remove already hashed EML-files... >>"%log_file%"
 if exist "%sig_file%" (
   "%clamscan_exe%" --database="%sig_file%" --leave-temps=no --recursive=no --remove=yes --infected --no-summary --scan-mail=yes --phishing-sigs=no --phishing-scan-urls=no --scan-pe=no --scan-elf=no --scan-ole2=no --scan-pdf=no --scan-swf=no --scan-html=no --scan-xmldocs=no --scan-hwp3=no --scan-archive=no --detect-broken=no "%work_dir%" >>"%log_file%" 2>>&1
 )
+
+call :calc_sigs "%sig_file%"
+
+rem Get "incoming" e-mail's of "spamtrap WL" mailbox
+echo. >>"%log_file%"
+echo Get whitelisted messages... >>"%log_file%"
+mpop.exe -Q -C mpop_wl.conf >>"%log_file%"
+
+call :calc_sigs "%fp_file%"
+
+rem Copying only last bases of signatures to ClamAV
+echo. >>"%log_file%"
+echo Copying signatures to ClamAV... >>"%log_file%"
+xcopy /R/D/Y "%base_dir%\%sig_basename%.*" "%clamav_db%" >>"%log_file%" 2>>&1
+
+echo. >>"%log_file%"
+echo Finished: %date%-%time% >>"%log_file%"
+
+exit /B
+
+
+
+rem ================
+rem Calculate signatures of EML-content
+rem %1 - filename to store signatures
+rem ================
+:calc_sigs
+
+setlocal
+set sig_file=%1
+set sig_file=%sig_file:"=%
 
 rem Unpack EML to content files
 echo. >>"%log_file%"
@@ -72,23 +109,18 @@ rmdir /S/Q "%work_dir%\eml_content" 2>>"%log_file%"
 del /F/S/Q "%work_dir%\*.*" 2>>"%log_file%"
 echo ...done. >>"%log_file%"
 
-rem Copying only last bases of signatures to ClamAV
-echo. >>"%log_file%"
-echo Copying signatures to ClamAV... >>"%log_file%"
-xcopy /R/D/Y "%base_dir%\%sig_basename%.*" "%clamav_db%" >>"%log_file%" 2>>&1
-
-echo. >>"%log_file%"
-echo Finished: %date%-%time% >>"%log_file%"
-
-goto :EOF
+endlocal
+exit /B
 
 
-:rotate
+rem ================
 rem Delete oldest sig.base and rename other
 rem %1 - directory with files
 rem %2 - base name of sig.files
 rem %3 - ext. sig.files
 rem %4 - max count of files (min - 1)
+rem ================
+:rotate
 
 setlocal EnableDelayedExpansion
 
@@ -107,4 +139,4 @@ for /L %%i in (%sig_cnt%,-1,2) do (
 rename "%sig_path%\%sig_name%.%sig_ext%" "%sig_name%_1.%sig_ext%"
 
 endlocal
-goto :EOF
+exit /B

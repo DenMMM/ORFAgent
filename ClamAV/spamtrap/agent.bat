@@ -10,11 +10,10 @@ rem	3 - error
 set clamdscan_run="C:\Program Files\ClamAV\clamdscan.exe" --infected --no-summary --stdout --config-file="C:\Program Files\ClamAV\clamd_spam.conf"
 rem set dccproc_run="C:\Program Files\ClamAV\spamtrap\dccproc.exe" -Q -H -m "C:\Program Files\ClamAV\spamtrap\dcc.map"
 set dccproc_run="C:\Program Files\ClamAV\spamtrap\dccproc.exe" -H -m "C:\Program Files\ClamAV\spamtrap\dcc.map"
-rem set dcc_log=nul
-set dcc_log=C:\Program Files\ClamAV\logs\spamtrap_dcc.log
-set trap_file=C:\Program Files\ClamAV\spamtrap\list_trap.txt
+set dcc_log=nul
+rem set dcc_log=C:\Program Files\ClamAV\logs\spamtrap_dcc.log
 set rbl_file=C:\Program Files\ClamAV\spamtrap\list_rbl.txt
-set stat_file=C:\Program Files\ClamAV\logs\spamtrap.stat
+set stat_file=C:\Program Files\ClamAV\logs\spamtrap_hash.stat
 
 set source_ip=%1
 set sender_addr=%2
@@ -32,14 +31,14 @@ if not ERRORLEVEL 1 exit /B 0
 
 if "%hit_dcc%"=="true" (
   echo %dcc_resp% >> "%dcc_log%"
-  echo SPAM-hash detected and DCC confirm. & exit /B 2
+  echo SPAM-hash detected and the DCC report "mass mailing". & exit /B 2
 )
 
 call :rbl_check_any %source_ip% "%rbl_file%" rbl_name rbl_resp
 if ERRORLEVEL 1 set hit_rbl=true
 
 call :stat_update "%stat_file%" "%rbl_file%" %rbl_name%
-if "%hit_rbl%"=="true" echo SPAM-hash detected and the %rbl_name% DNSBL hit: %rbl_resp%. & exit /B 2
+if "%hit_rbl%"=="true" echo SPAM-hash detected and the %rbl_name% DNSBL return: %rbl_resp%. & exit /B 2
 
 echo SPAM-hash detected.
 exit /B 1
